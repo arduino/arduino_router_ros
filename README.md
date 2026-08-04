@@ -58,3 +58,11 @@ Launch the proxy node:
 ```bash
 ros2 run arduino_router_ros arduino_proxy
 ```
+
+## How to Build your lib
+build_lib can convert ROS2 .msg files to C++ headers for [Arduino_RouterBridge_ROS](https://github.com/arduino-libraries/Arduino_RouterBridge_ROS)
+
+run the cli help for more information
+```bash
+ros2 run arduino_router_ros build_lib -h
+```
