@@ -1,17 +1,23 @@
-# arduino-router-ros
+# ⚠️ arduino-router-ros
+> ⚠️ **WORK IN PROGRESS (WIP)**  
+> This package is under active development. APIs, generated interfaces, and build workflows may change without notice.  
+> At the moment `arduino-router-ros` is only compatible with versions of the `arduino-router` that include:  
+>[#60](https://github.com/arduino/arduino-router/pull/60)  
+>[#62](https://github.com/arduino/arduino-router/pull/62)  
+> As for example this RC: [v0.10.0-rc.1](https://github.com/arduino/arduino-router/releases/tag/v0.10.0-rc.1)
 
 ROS 2 package providing the `arduino_proxy` node to bridge RPC communication between an embedded Arduino microcontroller (MCU) and the Linux MPU environment.
 
 ---
 
-## Architecture Overview
+## 🤖 Architecture Overview
 
 * **MCU side (Arduino):** Runs firmware built with the standalone Arduino RPC library.
 * **MPU side (Linux):** Runs the `arduino_proxy` node in this package to expose MCU RPC interfaces as ROS 2 topics and services.
 
 ---
 
-## Prerequisites
+## ✅ Prerequisites
 
 ### Flash the MCU (Arduino side)
 Before running the ROS proxy, ensure your UnoQ MCU is running the RPC sketch:
@@ -25,11 +31,10 @@ Before building, install the required Arduino Python utilities on your Linux MPU
 pip install watchdog numpy
 pip install git+https://github.com/arduino/app-bricks-py.git --break-system-packages --ignore-requires-python
 ```
-use with `--ignore-requires-python` only if python is < 3.13
+Use --ignore-requires-python only if your Python version is lower than 3.13.
 
-## Build Instructions
+## 🔨 Build Instructions
 Navigate to your ROS 2 workspace source directory:
-
 ```bash
 cd ~/ros2_ws/src
 ```
@@ -43,12 +48,12 @@ Install standard ROS dependencies:
 cd ~/ros2_ws
 rosdep install --from-paths src --ignore-src -r -y
 ```
-Build the package using colcon (make sure the ros2_venv is active):
+Build the package using colcon:
 ```bash
-colcon build --packages-select arduino_router_ros
+colcon build --packages-select arduino_router_ros --symlink-install
 ```
 
-## How to Run
+## 🏃 How to Run
 Source the workspace setup script:
 ```bash
 source ~/ros2_ws/install/setup.bash
@@ -59,10 +64,13 @@ Launch the proxy node:
 ros2 run arduino_router_ros arduino_proxy
 ```
 
-## How to Build your lib
+## 🧪 How to Build your lib
+> ⚠️ EXPERIMENTAL  
+> build_lib is currently experimental and provided for evaluation purposes. Generated code formats, CLI options, and supported workflows may change in future releases.
+
 build_lib can convert ROS2 .msg files to C++ headers for [Arduino_RouterBridge_ROS](https://github.com/arduino-libraries/Arduino_RouterBridge_ROS)
 
-run the cli help for more information
+Run the cli help for more information
 ```bash
 ros2 run arduino_router_ros build_lib -h
 ```
