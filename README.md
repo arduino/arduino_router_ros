@@ -25,11 +25,12 @@ Before running the ROS proxy, ensure your UnoQ MCU is running the RPC sketch:
 2. Flash your sketch to the board's MCU.
 
 ### Python dependencies
-Before building, install the required Arduino Python utilities on your Linux MPU environment:
+Before building, install the required Arduino Python utilities on your Linux MPU environment.  
+At the moment only `release/0.10.1` of `arduino app-bricks-py` is supported
 
 ```bash
 pip install watchdog numpy --break-system-packages
-pip install git+https://github.com/arduino/app-bricks-py.git --break-system-packages --ignore-requires-python
+pip install "git+https://github.com/arduino/app-bricks-py.git@release/0.10.1" --break-system-packages --ignore-requires-python
 ```
 Use --ignore-requires-python only if your Python version is lower than 3.13.
 
