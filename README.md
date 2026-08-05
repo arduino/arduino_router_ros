@@ -11,7 +11,7 @@ ROS 2 package providing the `arduino_proxy` node to bridge RPC communication bet
 ---
 
 ## 🤖 Architecture Overview
-
+> ⚠️ COMPATIBILITY: At the moment the [**Arduino® VENTUNO Q™**](https://www.arduino.cc/product-ventuno-q) is the only board supported
 * **MCU side (Arduino):** Runs firmware built with the standalone Arduino RPC library.
 * **MPU side (Linux):** Runs the `arduino_proxy` node in this package to expose MCU RPC interfaces as ROS 2 topics and services.
 
@@ -28,7 +28,7 @@ Before running the ROS proxy, ensure your UnoQ MCU is running the RPC sketch:
 Before building, install the required Arduino Python utilities on your Linux MPU environment:
 
 ```bash
-pip install watchdog numpy
+pip install watchdog numpy --break-system-packages
 pip install git+https://github.com/arduino/app-bricks-py.git --break-system-packages --ignore-requires-python
 ```
 Use --ignore-requires-python only if your Python version is lower than 3.13.
