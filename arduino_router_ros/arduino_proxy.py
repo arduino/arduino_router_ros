@@ -3,7 +3,6 @@
 # Copyright (c) Arduino s.r.l. and/or its affiliated companies
 # SPDX-License-Identifier: MPL-2.0
 
-import threading
 import array
 import rclpy
 import importlib
@@ -12,31 +11,26 @@ from msgpack import Timestamp
 
 from rclpy.node import Node
 from builtin_interfaces.msg._time import Time
-from arduino.app_utils import Bridge, App
+from arduino.router_bridge import Bridge
 
 
 class ArduinoProxy:
     def __init__(self, default_node_name="arduino_proxy"):
-        rclpy.init()
         self.node = Node(default_node_name)
 
+        self.bridge = Bridge()
+        if not self.bridge.connect(timeout=5):
+            raise RuntimeError('Failed to connect to arduino-router.service')
+
         # Bridge endpoints
-        Bridge.provide("ros2/node_reg", self.register_node)
-        Bridge.provide("ros2/reg", self.register_topic)
-        Bridge.provide("ros2/sub", self.subscribe)
-        Bridge.provide("ros2/pub", self.publish)
-        Bridge.provide("ros2/time", self.get_time)
+        self.bridge.provide("ros2/node_reg", self.register_node)
+        self.bridge.provide("ros2/reg", self.register_topic)
+        self.bridge.provide("ros2/sub", self.subscribe)
+        self.bridge.provide("ros2/pub", self.publish)
+        self.bridge.provide("ros2/time", self.get_time)
 
         self.publishers = {}
         self.publishers_id_counter = 0
-
-        # Start ROS 2 spinning in a background thread
-        self.ros_thread = threading.Thread(target=self._ros_thread_entry, daemon=True)
-        self.ros_thread.start()
-
-    def _ros_thread_entry(self):
-        """Background thread to handle ROS 2 middleware processing."""
-        rclpy.spin(self.node)
 
     def _import_msg_type(self, type_str: str):
         """
@@ -110,7 +104,7 @@ class ArduinoProxy:
 
         def ros_callback(msg):
             msg_dict = self._message_to_dict(msg)
-            Bridge.call(bridge_method_name, msg_dict)
+            self.bridge.call(bridge_method_name, msg_dict)
 
         self.node.create_subscription(
             MsgClass,
@@ -211,7 +205,11 @@ class ArduinoProxy:
 
 
 def main(args=None):
-    # Implementation
-    Proxy = ArduinoProxy()
-    App.run()
+    rclpy.init(args=args)
 
+    arduino_proxy = ArduinoProxy()
+
+    rclpy.spin(arduino_proxy.node)
+
+    arduino_proxy.node.destroy_node()
+    rclpy.shutdown()
