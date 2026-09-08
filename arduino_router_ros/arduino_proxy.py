@@ -3,7 +3,6 @@
 # Copyright (c) Arduino s.r.l. and/or its affiliated companies
 # SPDX-License-Identifier: MPL-2.0
 
-import threading
 import array
 import rclpy
 import importlib
@@ -17,7 +16,6 @@ from arduino.router_bridge import Bridge
 
 class ArduinoProxy:
     def __init__(self, default_node_name="arduino_proxy"):
-        rclpy.init()
         self.node = Node(default_node_name)
 
         self.bridge = Bridge()
@@ -33,14 +31,6 @@ class ArduinoProxy:
 
         self.publishers = {}
         self.publishers_id_counter = 0
-
-        # Start ROS 2 spinning in a background thread
-        self.ros_thread = threading.Thread(target=self._ros_thread_entry, daemon=True)
-        self.ros_thread.start()
-
-    def _ros_thread_entry(self):
-        """Background thread to handle ROS 2 middleware processing."""
-        rclpy.spin(self.node)
 
     def _import_msg_type(self, type_str: str):
         """
@@ -215,4 +205,11 @@ class ArduinoProxy:
 
 
 def main(args=None):
-    Proxy = ArduinoProxy()
+    rclpy.init(args=args)
+
+    arduino_proxy = ArduinoProxy()
+
+    rclpy.spin(arduino_proxy.node)
+
+    arduino_proxy.node.destroy_node()
+    rclpy.shutdown()
