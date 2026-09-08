@@ -26,13 +26,10 @@ Before running the ROS proxy, ensure your UnoQ MCU is running the RPC sketch:
 
 ### Python dependencies
 Before building, install the required Arduino Python utilities on your Linux MPU environment.  
-At the moment only `release/0.10.1` of `arduino app-bricks-py` is supported
 
 ```bash
-pip install watchdog numpy --break-system-packages
-pip install "git+https://github.com/arduino/app-bricks-py.git@release/0.10.1" --break-system-packages --ignore-requires-python
+pip install watchdog numpy arduino-router-bridge --break-system-packages
 ```
-Use --ignore-requires-python only if your Python version is lower than 3.13.
 
 ## 🔨 Build Instructions
 Navigate to your ROS 2 workspace source directory:

@@ -18,7 +18,7 @@ setup(
         'msgpack',
         'watchdog',
         'numpy',
-        'arduino-app-bricks @ git+https://github.com/arduino/app-bricks-py.git',
+        'arduino-router-bridge',
     ],
     zip_safe=True,
     maintainer='arduino',

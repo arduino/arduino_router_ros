@@ -12,7 +12,7 @@ from msgpack import Timestamp
 
 from rclpy.node import Node
 from builtin_interfaces.msg._time import Time
-from arduino.app_utils import Bridge, App
+from arduino.router_bridge import Bridge
 
 
 class ArduinoProxy:
@@ -20,12 +20,16 @@ class ArduinoProxy:
         rclpy.init()
         self.node = Node(default_node_name)
 
+        self.bridge = Bridge()
+        if not self.bridge.connect(timeout=5):
+            raise RuntimeError('Failed to connect to arduino-router.service')
+
         # Bridge endpoints
-        Bridge.provide("ros2/node_reg", self.register_node)
-        Bridge.provide("ros2/reg", self.register_topic)
-        Bridge.provide("ros2/sub", self.subscribe)
-        Bridge.provide("ros2/pub", self.publish)
-        Bridge.provide("ros2/time", self.get_time)
+        self.bridge.provide("ros2/node_reg", self.register_node)
+        self.bridge.provide("ros2/reg", self.register_topic)
+        self.bridge.provide("ros2/sub", self.subscribe)
+        self.bridge.provide("ros2/pub", self.publish)
+        self.bridge.provide("ros2/time", self.get_time)
 
         self.publishers = {}
         self.publishers_id_counter = 0
@@ -110,7 +114,7 @@ class ArduinoProxy:
 
         def ros_callback(msg):
             msg_dict = self._message_to_dict(msg)
-            Bridge.call(bridge_method_name, msg_dict)
+            self.bridge.call(bridge_method_name, msg_dict)
 
         self.node.create_subscription(
             MsgClass,
@@ -211,7 +215,4 @@ class ArduinoProxy:
 
 
 def main(args=None):
-    # Implementation
     Proxy = ArduinoProxy()
-    App.run()
-

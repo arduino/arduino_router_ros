@@ -23,5 +23,6 @@
   <exec_depend>python3-msgpack</exec_depend>
   <exec_depend>python3-watchdog</exec_depend>
   <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-arduino-router-bridge</exec_depend>
 
 </package>
