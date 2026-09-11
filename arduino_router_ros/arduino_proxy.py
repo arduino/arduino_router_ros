@@ -23,6 +23,7 @@ class ArduinoProxy:
             raise RuntimeError('Failed to connect to arduino-router.service')
 
         # Bridge endpoints
+        self.bridge.provide("ros2/ready", self.ready)
         self.bridge.provide("ros2/node_reg", self.register_node)
         self.bridge.provide("ros2/reg", self.register_topic)
         self.bridge.provide("ros2/sub", self.subscribe)
@@ -59,6 +60,12 @@ class ArduinoProxy:
         seconds, nanoseconds = time.seconds_nanoseconds()
         return Timestamp(seconds, nanoseconds)
 
+    def ready(self):
+        """
+        Used to check proxy is online
+        """
+        return True
+
     def register_node(self, node_name: str) -> bool:
         """
         In ROS 2, we usually keep one Node, but we can update its
@@ -89,6 +96,7 @@ class ArduinoProxy:
         }
 
         return current_id
+
     def subscribe(self, topic_name: str, topic_type: str) -> int:
         """
         Creates a ROS 2 subscription and sets up a bridge callback.
