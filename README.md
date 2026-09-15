@@ -1,10 +1,6 @@
 # ⚠️ arduino-router-ros
 > ⚠️ **WORK IN PROGRESS (WIP)**  
 > This package is under active development. APIs, generated interfaces, and build workflows may change without notice.  
-> At the moment `arduino-router-ros` is only compatible with versions of the `arduino-router` that include:  
->[#60](https://github.com/arduino/arduino-router/pull/60)  
->[#62](https://github.com/arduino/arduino-router/pull/62)  
-> As for example this RC: [v0.10.0-rc.1](https://github.com/arduino/arduino-router/releases/tag/v0.10.0-rc.1)
 
 ROS 2 package providing the `arduino_proxy` node to bridge RPC communication between an embedded Arduino microcontroller (MCU) and the Linux MPU environment.
 
