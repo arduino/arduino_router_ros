@@ -29,8 +29,10 @@ class ArduinoProxy:
         self.bridge.provide("ros2/sub", self.subscribe)
         self.bridge.provide("ros2/pub", self.publish)
         self.bridge.provide("ros2/time", self.get_time)
+        self.bridge.provide("ros2/reset", self.reset)
 
         self.publishers = {}
+        self.subscriptions = {}
         self.publishers_id_counter = 0
 
     def _import_msg_type(self, type_str: str):
@@ -114,16 +116,38 @@ class ArduinoProxy:
             msg_dict = self._message_to_dict(msg)
             self.bridge.call(bridge_method_name, msg_dict)
 
-        self.node.create_subscription(
+        sub = self.node.create_subscription(
             MsgClass,
             topic_name,
             ros_callback,
             10 # QoS depth
         )
 
+        self.subscriptions[sub_id] = {
+            "subscription": sub,
+            "type": MsgClass,
+            "topic": topic_name
+        }
+
         self.node.get_logger().info(f"Subscribed to {topic_name} [{topic_type}] with ID {sub_id}")
 
         return sub_id
+
+    def reset(self) -> bool:
+        """
+        Resets all publishers and subscriptions created on the proxy node.
+        """
+        for pub_id, pub_info in list(self.publishers.items()):
+            self.node.destroy_publisher(pub_info["publisher"])
+        self.publishers.clear()
+
+        for sub_id, sub_info in list(self.subscriptions.items()):
+            self.node.destroy_subscription(sub_info["subscription"])
+        self.subscriptions.clear()
+
+        self.publishers_id_counter = 0
+        self.node.get_logger().info("Reset all publishers and subscriptions")
+        return True
 
     def _message_to_dict(self, msg):
         """
