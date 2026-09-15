@@ -1,5 +1,5 @@
 # ⚠️ arduino-router-ros
-> ⚠️ **WORK IN PROGRESS (WIP)**  
+> 🚧 **WORK IN PROGRESS (WIP)**  
 > This package is under active development. APIs, generated interfaces, and build workflows may change without notice.  
 
 ROS 2 package providing the `arduino_proxy` node to bridge RPC communication between an embedded Arduino microcontroller (MCU) and the Linux MPU environment.
