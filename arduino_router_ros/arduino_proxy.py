@@ -34,6 +34,7 @@ class ArduinoProxy:
         self.publishers = {}
         self.subscriptions = {}
         self.publishers_id_counter = 0
+        self.subscriptions_id_counter = 0
 
     def _import_msg_type(self, type_str: str):
         """
@@ -107,8 +108,8 @@ class ArduinoProxy:
         if not MsgClass:
             raise ImportError(f"Failed to import {topic_type}")
 
-        self.publishers_id_counter += 1
-        sub_id = self.publishers_id_counter
+        self.subscriptions_id_counter += 1
+        sub_id = self.subscriptions_id_counter
 
         bridge_method_name = f"{sub_id}{topic_name}"
 
@@ -146,6 +147,7 @@ class ArduinoProxy:
         self.subscriptions.clear()
 
         self.publishers_id_counter = 0
+        self.subscriptions_id_counter = 0
         self.node.get_logger().info("Reset all publishers and subscriptions")
         return True
 
