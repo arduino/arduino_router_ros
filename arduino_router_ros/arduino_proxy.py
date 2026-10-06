@@ -30,11 +30,14 @@ class ArduinoProxy:
         self.bridge.provide("ros2/pub", self.publish)
         self.bridge.provide("ros2/time", self.get_time)
         self.bridge.provide("ros2/reset", self.reset)
+        self.bridge.provide("ros2/service_reg", self.register_service)
 
         self.publishers = {}
         self.subscriptions = {}
+        self.services = {}
         self.publishers_id_counter = 0
         self.subscriptions_id_counter = 0
+        self.services_id_counter = 0
 
     def _import_msg_type(self, type_str: str):
         """
@@ -51,6 +54,23 @@ class ArduinoProxy:
             return getattr(module, class_name)
         except Exception as e:
             self.node.get_logger().error(f"Failed to import {type_str}: {e}")
+            return None
+
+    def _import_srv_iface(self, iface_str: str):
+        """
+        Dynamically imports a service interface.
+        Expects format: "example_interfaces/srv/AddTwoInts" or "example_interfaces/AddTwoInts"
+        """
+
+        iface_str = iface_str.replace('/srv/', '/')
+        try:
+            parts = iface_str.split('/')
+            module_path = f"{parts[0]}.srv"
+            iface_name = parts[1]
+            module = importlib.import_module(module_path)
+            return getattr(module, iface_name)
+        except Exception as e:
+            self.node.get_logger().error(f"Failed to import {iface_str}: {e}")
             return None
 
     def get_time(self) -> Timestamp:
@@ -96,6 +116,42 @@ class ArduinoProxy:
             "type": MsgClass,
             "topic": topic_name,
             "time_mode": time_mode
+        }
+
+        return current_id
+
+    def register_service(self, service_name: str, iface: str, time_mode: str) -> int:
+        """
+        Registers a service with specific I/O types.
+        """
+
+        IfaceClass = self._import_srv_iface(iface)
+        IfaceClass_Response = self._import_srv_iface(iface + "_Response")
+        if not IfaceClass:
+            raise ImportError(f"Failed to import {iface}")
+        if not IfaceClass_Response:
+            raise ImportError(f"Failed to import {iface}_Response")
+
+        self.services_id_counter += 1
+        current_id = self.services_id_counter
+
+        callback_name = f"{current_id}{service_name}"
+
+        def srv_callback(request, response=None):
+            try:
+                req_dict = self._message_to_dict(request)
+                self.node.get_logger().info(f"Received request: {request} -> {str(req_dict)}")
+                response = self.bridge.call(callback_name, req_dict)
+                return self._dict_to_message(IfaceClass_Response, response, time_mode=time_mode)
+            except Exception as e:
+                self.node.get_logger().error(f"Error in service callback: {e} {response if response else None}")
+                return None
+
+        service = self.node.create_service(IfaceClass, service_name, srv_callback)
+
+        self.services[current_id] = {
+            "service": service,
+            "name": service_name
         }
 
         return current_id
@@ -173,7 +229,7 @@ class ArduinoProxy:
                 d[slot] = value
         return d
 
-    def _dict_to_message(self, MsgClass, data_dict: dict, time_mode: str = ""):
+    def _dict_to_message(self, MsgClass, data_dict: dict | None, time_mode: str = ""):
         """
         Recursively converts a nested Python dictionary into an instantiated
         ROS 2 message object, matching nested fields to their required types.
