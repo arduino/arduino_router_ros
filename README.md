@@ -34,7 +34,7 @@ cd ~/ros2_ws/src
 ```
 Clone this repository:
 ```bash
-git clone https://github.com/arduino/arduino-router-ros.git
+git clone https://github.com/arduino/arduino_router_ros.git
 ```
 Install standard ROS dependencies:
 
