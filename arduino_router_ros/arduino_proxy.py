@@ -6,6 +6,7 @@
 import array
 import rclpy
 import importlib
+import threading
 
 from msgpack import Timestamp
 
@@ -31,13 +32,17 @@ class ArduinoProxy:
         self.bridge.provide("ros2/time", self.get_time)
         self.bridge.provide("ros2/reset", self.reset)
         self.bridge.provide("ros2/service_reg", self.register_service)
+        self.bridge.provide("ros2/client_reg", self.register_client)
+        self.bridge.provide("ros2/call_srv", self.call_service)
 
         self.publishers = {}
         self.subscriptions = {}
         self.services = {}
+        self.clients = {}
         self.publishers_id_counter = 0
         self.subscriptions_id_counter = 0
         self.services_id_counter = 0
+        self.clients_id_counter = 0
 
     def _import_msg_type(self, type_str: str):
         """
@@ -115,6 +120,33 @@ class ArduinoProxy:
             "publisher": pub,
             "type": MsgClass,
             "topic": topic_name,
+            "time_mode": time_mode
+        }
+
+        return current_id
+
+    def register_client(self, service_name: str, iface: str, time_mode: str) -> int:
+        """
+        Registers a client with specific I/O types.
+        """
+
+        IfaceClass = self._import_srv_iface(iface)
+        if not IfaceClass:
+            raise ImportError(f"Failed to import {iface}")
+
+        client = self.node.create_client(IfaceClass, service_name)
+        while not client.wait_for_service(timeout_sec=1.0):
+            self.node.get_logger().info('service not available, waiting again...')
+            return -1
+
+        self.clients_id_counter += 1
+        current_id = self.clients_id_counter
+
+        self.clients[current_id] = {
+            "client": client,
+            "interface": IfaceClass,
+            "interface_name": iface,
+            "name": service_name,
             "time_mode": time_mode
         }
 
@@ -293,6 +325,41 @@ class ArduinoProxy:
             self.node.get_logger().error(f"Publish error on ID {id_}: {e}")
             return False
 
+    def call_service(self, id_: int, request_data: dict, timeout: float = 5.0) -> dict:
+        try:
+            client_info = self.clients.get(id_)
+            if not client_info:
+                raise ValueError(f"Client with ID {id_} not found")
+
+            iface = client_info["interface_name"]
+            IfaceClass_Request = self._import_srv_iface(iface + "_Request")
+            if not IfaceClass_Request:
+                raise ImportError(f"Failed to import {iface}_Request")
+
+            client = client_info["client"]
+            if not client.wait_for_service(timeout_sec=1.0):
+                raise TimeoutError(f"Service not available for client {id_}")
+
+            request = self._dict_to_message(IfaceClass_Request, request_data)
+
+            done = threading.Event()
+            future = client.call_async(request)
+            future.add_done_callback(lambda _: done.set())
+
+            if not done.wait(timeout):
+                future.cancel()
+                raise TimeoutError(f"Service call on ID {id_} timed out after {timeout}s")
+
+            if future.exception() is not None:
+                raise future.exception()
+
+            res = future.result()
+        except Exception as e:
+            self.node.get_logger().error(f"Service call error on ID {id_}: {e}")
+            return {}
+
+        self.node.get_logger().info(f"Service call on ID {id_} completed result = {res}")
+        return self._message_to_dict(res)
 
 def main(args=None):
     rclpy.init(args=args)
