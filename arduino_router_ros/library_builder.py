@@ -12,6 +12,7 @@ import os
 import sys
 import argparse
 import re
+import zipfile
 from pathlib import Path
 from typing import List, Tuple, Dict, Optional
 
@@ -246,6 +247,20 @@ class MessageLibraryGenerator:
 
         return success
 
+    def pack_package(self, package_name: str, zip_path: str) -> bool:
+        """Pack the headers generated from a package into a ZIP archive."""
+        package_dir = self.msg_dir / package_name / "msg"
+        try:
+            with zipfile.ZipFile(zip_path, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+                for msg_file in sorted(package_dir.glob("*.msg")):
+                    header = self.output_dir / package_name / f"{msg_file.stem}.h"
+                    archive.write(header, arcname=f"{package_name}/{header.name}")
+            print(f"Created archive: {zip_path}")
+            return True
+        except (OSError, zipfile.BadZipFile) as e:
+            print(f"Error creating archive {zip_path}: {e}", file=sys.stderr)
+            return False
+
     def _generate_single_file(self, msg_file: Path, package_name: str, output_dir: Path) -> bool:
         """Generate header for a single .msg file"""
         parser = MsgParser()
@@ -287,12 +302,19 @@ def main():
         default="./generated",
         help="Output directory for generated headers (default: ./generated)"
     )
+    parser.add_argument(
+        "--zip",
+        metavar="PATH",
+        help="Also pack generated headers into a ZIP archive at PATH"
+    )
 
     args = parser.parse_args()
 
     generator = MessageLibraryGenerator(args.msg_dir, args.output)
 
     if generator.generate_from_package(args.package):
+        if args.zip and not generator.pack_package(args.package, args.zip):
+            return 1
         print(f"✓ Successfully generated headers for package '{args.package}'")
         return 0
     else:
