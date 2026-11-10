@@ -62,7 +62,13 @@ ros2 run arduino_router_ros arduino_proxy
 > ⚠️ EXPERIMENTAL  
 > build_lib is currently experimental and provided for evaluation purposes. Generated code formats, CLI options, and supported workflows may change in future releases.
 
-build_lib can convert ROS 2 .msg files to C++ headers for [Arduino_RouterBridge_ROS](https://github.com/arduino-libraries/Arduino_RouterBridge_ROS)
+build_lib can convert ROS 2 .msg and .srv files to C++ headers for [Arduino_RouterBridge_ROS](https://github.com/arduino-libraries/Arduino_RouterBridge_ROS). Service headers expose `Request`, `Response`, and `_iface` in the package's `srv` namespace. Message dependencies must also be generated separately. When generating both types, a message and service in the same package cannot share a name because their headers would collide.
+
+Use `-d` or `--source-dir` to specify the directory containing packages. Use `-m` for messages only, `-s` for services only, or omit both to generate all interfaces. Passing both also generates all interfaces. Existing output headers are not removed; ZIP archives contain only the selected interfaces.
+
+```bash
+ros2 run arduino_router_ros build_lib -p std_msgs -d /path/to/ros2/packages -m -o ./generated --zip ./std_msgs.zip -l "MY LICENSE TEXT"
+```
 
 Run the cli help for more information
 ```bash
