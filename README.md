@@ -34,7 +34,7 @@ cd ~/ros2_ws/src
 ```
 Clone this repository:
 ```bash
-git clone https://github.com/arduino/arduino-router-ros.git
+git clone https://github.com/arduino/arduino_router_ros.git
 ```
 Install standard ROS dependencies:
 
@@ -62,7 +62,7 @@ ros2 run arduino_router_ros arduino_proxy
 > ⚠️ EXPERIMENTAL  
 > build_lib is currently experimental and provided for evaluation purposes. Generated code formats, CLI options, and supported workflows may change in future releases.
 
-build_lib can convert ROS2 .msg files to C++ headers for [Arduino_RouterBridge_ROS](https://github.com/arduino-libraries/Arduino_RouterBridge_ROS)
+build_lib can convert ROS 2 .msg files to C++ headers for [Arduino_RouterBridge_ROS](https://github.com/arduino-libraries/Arduino_RouterBridge_ROS)
 
 Run the cli help for more information
 ```bash
