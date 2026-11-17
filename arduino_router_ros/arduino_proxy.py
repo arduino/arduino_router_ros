@@ -13,6 +13,8 @@ from rclpy.node import Node
 from builtin_interfaces.msg._time import Time
 from arduino.router_bridge import Bridge
 
+from arduino_router_ros.qos import qos_profile
+
 
 class ArduinoProxy:
     def __init__(self, default_node_name="arduino_proxy"):
@@ -77,7 +79,7 @@ class ArduinoProxy:
         self.node.get_logger().info(f"Remote side identified as logical node: {node_name}")
         return True
 
-    def register_topic(self, topic_name: str, topic_type: str, time_mode: str) -> int:
+    def register_topic(self, topic_name: str, topic_type: str, qos_map: dict, time_mode: str) -> int:
         """
         Registers a topic with a specific type.
         Example topic_type: "std_msgs/msg/Int32"
@@ -86,10 +88,12 @@ class ArduinoProxy:
         if not MsgClass:
             raise ImportError(f"Failed to import {topic_type}")
 
+        qos = qos_profile(qos_map)
+
         self.publishers_id_counter += 1
         current_id = self.publishers_id_counter
 
-        pub = self.node.create_publisher(MsgClass, topic_name, 10)
+        pub = self.node.create_publisher(MsgClass, topic_name, qos)
 
         self.publishers[current_id] = {
             "publisher": pub,
